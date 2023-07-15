@@ -1,0 +1,63 @@
+#notificationCard {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    height: 50px;
+    border-radius: 25px;
+    padding: 10px;
+    display: flex;
+    gap: 16px;
+}
+
+
+.circle-loader {
+  margin-bottom: 30px/2;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  border-left-color: white;
+  animation: loader-spin 1.2s infinite linear;
+  position: relative;
+  display: inline-block;
+  vertical-align: top;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+}
+
+.load-complete {
+  -webkit-animation: none;
+  animation: none;
+  border-color: white;
+  transition: border 500ms ease-out;
+}
+
+
+@keyframes loader-spin {
+  0% {
+      transform: rotate(0deg);
+  }
+  100% {
+      transform: rotate(360deg);
+  }
+}
+
+.loader-text {
+    padding-top: 6px;
+    padding-right: 12px;
+    color: lightgrey;
+    font-family: 'Lato', sans-serif;
+    font-size: 17px;
+}
+.animated-text {
+    animation-name: fading;
+    animation-duration: 1500ms;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+}
+@keyframes fading {
+    0%, 100% {
+        opacity: 0.05;
+    }
+    50% {
+        opacity: 0.95;
+    }
+}

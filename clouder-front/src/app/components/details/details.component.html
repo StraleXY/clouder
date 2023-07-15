@@ -1,0 +1,31 @@
+<div class="floating-card-header" (click)="close(null)">
+    <div class="icon-btn icon-btn-text">
+        <span class="material-symbols-outlined">close</span>
+        <p>Close</p>
+    </div>
+</div>
+<div class="card">
+    <form [formGroup]="fileDetailsForm">
+        <input #fileData type="file" class="file-input" multiple="false" (change)="onFileSelected($event)">
+        <input type="text" placeholder="Name" id="name" formControlName="name">
+        <textarea type="text" placeholder="Description" id="description" rows="4" formControlName="description"></textarea>
+
+        <div class="flex-container">
+            <input type="text" placeholder="Tag Name" id="tagfiled" formControlName="inputTag">
+            <span class="material-symbols-outlined btn-icon" (click)="addTag()">new_label</span> 
+        </div>
+        <div *ngIf="_file.tags.length" class="tags-container">
+            <div class="tag-chip" *ngFor="let tag of _file.tags">
+                <p class="chip-text">{{tag}}</p>
+                <button class="chip-delete" mat-icon-button (click)="deleteTag(tag)"> <mat-icon style="font-size: 20px; translate: 0px 5px;">cancel</mat-icon> </button>
+            </div>
+        </div>
+
+        <div class="align-right">
+            <div class="icon-btn save-btn" (click)="save()">
+                <span class="material-symbols-outlined">{{_isNew ? 'upload' : 'save'}}</span>
+                <p>{{_isNew ? 'Upload File' : 'Save Changes'}}</p>
+            </div>
+        </div>
+    </form>
+</div>

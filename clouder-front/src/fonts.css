@@ -1,0 +1,59 @@
+@font-face {
+    font-family: 'Titillium Web';
+    src: url('assets/fonts/TitilliumWeb-Light.ttf') format('ttf');
+    font-weight: light;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Titillium Web';
+    src: url('assets/fonts/TitilliumWeb-Regular.ttf') format('ttf');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Titillium Web';
+    src: url('assets/fonts/TitilliumWeb-SemiBold.ttf') format('ttf');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Titillium Web';
+    src: url('assets/fonts/TitilliumWeb-Bold.ttf') format('ttf');
+    font-weight: bolder;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Roboto';
+    src: url('assets/fonts/Roboto-Regular.ttf') format('ttf');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Roboto';
+    src: url('assets/fonts/Roboto-Regular.ttf') format('ttf');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Roboto';
+    src: url('assets/fonts/Roboto-Medium.ttf') format('ttf');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+
+
+@font-face {
+    font-family: 'Lexend';
+    src: url('assets/fonts/Lexend-Bold.ttf') format('ttf');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}

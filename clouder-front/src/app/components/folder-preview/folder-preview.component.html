@@ -1,0 +1,26 @@
+<div class="card folder" (mouseleave)="hideMenu()">
+    <div class="folder-thumbnail" (click)="click()">
+        <span><div class="folder-icon"></div></span>
+    </div>
+
+    <div class="folder-details-short">
+        <h2 class="folder-name text">{{name}}</h2>
+        <div>
+            <span #targetSpan class="material-symbols-outlined btn-icon" (click)="toggleMenu()" style="color: #eee;">more_vert</span>
+            <ul class="context-menu" [ngClass]="{'visible' : isMenuOpend}" [ngStyle]="{'transform': 'translateX(' + offsetX + 'px) translateY(' + offsetY + 'px)'}">
+                <li (click)="details()"><div>
+                    <span class="material-symbols-outlined">info</span>
+                    <p>Details</p>
+                </div></li>
+                <li *ngIf="!isShared" (click)="share()"><div>
+                    <span class="material-symbols-outlined">share</span>
+                    <p>Share</p>
+                </div></li>
+                <li *ngIf="!isShared" (click)="delete()"><div>
+                    <span class="material-symbols-outlined">delete</span>
+                    <p>Delete</p>
+                </div></li>
+            </ul>
+        </div>
+    </div>
+</div>

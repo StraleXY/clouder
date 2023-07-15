@@ -1,0 +1,73 @@
+.card {
+    width: 60vw;
+    margin: 16px;
+    padding: 32px;
+}
+.align-right {
+    width: 100%;
+    display: flex;
+    justify-content: end;
+}
+.save-btn {
+    margin-top: 8px;
+}
+
+
+input::file-selector-button {
+    font-family: "Roboto";
+    font-weight: normal;
+    letter-spacing: 0.15rem;
+    transition: transform 20ms ease-in;
+    font-size: 0.85rem;
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 8px 12px 8px 14px;
+    border-radius: 18px;
+    font-weight: medium;
+    scale: 0.98;
+    text-transform: uppercase;
+    color: white;
+}
+input::file-selector-button:hover {
+    background: #a1b30028;
+}
+.file-input {
+    padding: 10px 8px;
+}
+
+#tagfiled {
+    margin-right: 16px;
+}
+.btn-icon {
+    margin-top: 4px;
+    color: #eee;
+}
+.tags-container {
+    display: flex;
+    margin-top: 8px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.tag-chip {
+    background-color: #a1b300;
+    padding: 1px 1px;
+    padding-left: 12px;
+    border-radius: 16px;
+    display: flex;
+}
+.chip-delete {
+    padding: 0;
+    margin: 0;
+    width: 30px;
+    height: 30px;
+    background: transparent;
+}
+.chip-text {
+    font-family: "Roboto";
+    padding: 0px 2px;
+    margin: 0;
+    margin-top: 5px;
+    color: #080808;
+}

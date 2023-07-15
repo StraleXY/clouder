@@ -1,0 +1,113 @@
+<div class="body">
+
+    <div class="home-page">
+        <div class="sidebar-container">
+            <div class="sidebar-card card" [ngClass]="{'disabled' : currentPath == ''}" style="padding: 10px;">
+                <div class="btn-icon" (click)="back()">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                </div>
+            </div>
+            <div class="sidebar-card card sidebar" style="padding: 16px 5px 12px 5px;">
+                <div class="btn-icon" (click)="toggleShowShared(false)">
+                    <span class="s-tooltip">Show My Files</span>
+                    <span class="material-symbols-outlined">3p</span>
+                </div>
+                <div class="btn-icon" (click)="toggleShowShared(true)">
+                    <span class="s-tooltip">Show Shared Files</span>
+                    <span class="material-symbols-outlined">share_reviews</span>
+                </div>
+                <span style="width: 34px; height: 1px; background: #606060; margin-bottom: 6px;"></span>
+                <div class="btn-icon" (click)="upload()">
+                    <span class="s-tooltip">New File</span>
+                    <span class="material-symbols-outlined">note_add</span>
+                </div>
+                <div class="btn-icon" (click)="toggleAddEditFolder('')">
+                    <span class="s-tooltip">New Folder</span>
+                    <span class="material-symbols-outlined">create_new_folder</span>
+                </div>
+
+                <div [ngClass]="{'hidden' : toMove.length == 0 }" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 8px; scale: 1; transition: all 0.05s ease-in;">
+                    <span style="width: 34px; height: 1px; background: #606060; margin-bottom: 6px;"></span>
+                    <span class="file-count-display">{{toMove.length}}</span>
+                    <div class="btn-icon" (click)="confirmMove()">
+                        <span class="s-tooltip">Move Here</span>
+                        <span class="material-symbols-outlined">flex_direction</span>
+                    </div>
+                </div>
+
+                <div class="btn-icon logout" (click)="logout()">
+                    <span class="s-tooltip">Logout</span>
+                    <span class="material-symbols-outlined">logout</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="header">
+                <p class="bread">{{showingShared ? "Shared CloudEr Drive" : "My CloudEr Drive"}} </p>
+                <div *ngFor="let folder of pathFolders" style="display: flex;">
+                    <span class="material-symbols-outlined">navigate_next</span>
+                    <p class="bread">{{folder}}</p>
+                </div>
+            </div>
+
+            <div class="files-container">
+                <div *ngFor="let item of prepareFilesList()">
+                    <ng-container *ngIf="isFolder(item); else file_card">
+                        <app-folder-preview
+                            [name]="item"
+                            [isShared]="showingShared"
+                            (onShare)="toggleSharing($event)"
+                            (onClick)="navigate(item)"
+                            (onDetails)="toggleAddEditFolder(item)"
+                            (onDelete)="onDeleteFolder(item)">
+                        </app-folder-preview>
+                    </ng-container>
+                    <ng-template #file_card>
+                        <app-file-preview *ngIf="item.file_type !='#folder_keeper#'"
+                            [file]="item"
+                            [isShared]="showingShared"
+                            [isSelected]="isForMove(item)"
+                            (onShare)="toggleSharing($event)"
+                            (onDetails)="showDetails($event)"
+                            (onMove)="onMove(item, $event)"
+                            (onDelete)="onDeleteFile($event)"
+                            (onDownload)="onDownload(item)">
+                        </app-file-preview>
+                    </ng-template>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" [class.overlay-hidden]="!isSharingToggled && !isDetailsToggled && !isFolderAddEditToggled"></div>
+
+    <app-details
+        class="floating-card"
+        [class.card-hidden]="!isDetailsToggled"
+        [file]="selectedFile"
+        (onClose)="hideDetails($event)">
+    </app-details>
+
+    <app-folder-add-edit
+        class="floating-card"
+        [class.card-hidden]="!isFolderAddEditToggled"
+        [folders]="pathFolders"
+        [currentPath]="currentPath"
+        [selectedFolder]="selectedFolder"
+        (onClose)="toggleAddEditFolder('')"
+        (onSave)="onFolderSave($event)">
+    </app-folder-add-edit>
+
+    <app-sharing
+        class="floating-card"
+        [class.card-hidden]="!isSharingToggled"
+        [file]="selectedFile"
+        (onClose)="toggleSharing($event)"
+        (onStartSharing)="startSharing($event)"
+        (onStopSharing)="stopSharing($event)">
+    </app-sharing>
+
+    <app-notification-card [file]="uploadingFile" [deleting]="deleting"></app-notification-card>
+
+</div>

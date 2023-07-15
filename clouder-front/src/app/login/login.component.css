@@ -1,0 +1,82 @@
+.card-container {
+    width: 400px;
+    height: 100vh;
+    width: 100vw;
+    display: grid;
+    place-items: center;
+    /* height: 440px; */
+    position: relative;
+    transition: all 1s ease-in-out;
+    overflow: hidden;
+}
+
+.card {
+    width: 400px;
+    padding: 40px 40px;
+    backdrop-filter: blur(90px);
+    background: rgba(70,70,70,0.45);
+    border: #ffffff05 solid 2px;
+    transition: all 1s ease-in-out;
+}
+.hidden {
+    max-height: 0px !important;
+    opacity: 0;
+}
+.sign-up-fields {
+    overflow: hidden;
+}
+.animated {
+    max-height: 240px;
+    transition: all 0.15s ease-in-out;
+}
+
+.circle {
+    width: 285px;
+    height: 280px;
+    background: radial-gradient(#C3D90050, #84920540);
+    border-radius: 50%;
+    position: absolute;
+    animation: move-up6 2s ease-in infinite alternate-reverse;
+    filter: blur(90px);
+    transition: all 0.35s ease-out;
+}
+.big {
+    width: 355px;
+    height: 350px;
+}
+.circle:nth-child(1) {
+    top: 75px;
+    left: 375px;
+}
+.circle:nth-child(2) {
+    bottom: 100px;
+    right: 425px;
+    animation-name: move-down1;
+}
+.offset-big {
+    translate: 400px -70px;
+}
+.offset {
+    translate: -400px 60px;
+}
+
+@keyframes move-up6 {
+    to {
+        transform: translateY(-30px);
+        transform: translateX(-15px);
+    }
+}
+
+@keyframes move-down1 {
+    to {
+        transform: translateY(30px);
+        transform: translateX(15px);
+    }
+}
+
+.fields {
+    margin: 40px 0px;
+}
+button {
+    margin-top: 10px;
+}

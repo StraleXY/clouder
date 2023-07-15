@@ -1,0 +1,31 @@
+.card {
+    width: 60vw;
+    margin: 16px;
+    padding: 32px;
+}
+.bread-container {
+    display: flex;
+    align-items: center;
+    padding: 8px 0px 12px 0px;
+    gap: 8px;
+    opacity: 0.9;
+    overflow-x: scroll;
+}
+.bread-container::-webkit-scrollbar {
+    height: 0;
+}
+.bread {
+    font-family: 'Titillium Web';
+    font-size: 17px;
+    margin-top: -2px;
+    margin-left: 6px;
+    user-select: none;
+}
+.align-right {
+    width: 100%;
+    display: flex;
+    justify-content: end;
+}
+.save-btn {
+    margin-top: 10px;
+}

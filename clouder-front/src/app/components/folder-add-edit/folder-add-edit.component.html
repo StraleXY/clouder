@@ -1,0 +1,23 @@
+<div class="floating-card-header" (click)="close()">
+    <div class="icon-btn icon-btn-text">
+        <span class="material-symbols-outlined">close</span>
+        <p>Close</p>
+    </div>
+</div>
+<div class="card">
+    <div class="bread-container">
+        <p class="bread">CloudEr Drive</p>
+        <div *ngFor="let folder of folders" style="display: flex;">
+            <span class="material-symbols-outlined">navigate_next</span>
+            <p class="bread">{{folder}}</p>
+        </div>
+        <span class="material-symbols-outlined">navigate_next</span>
+    </div>
+    <input type="text" placeholder="Folder Name" id="name" [(ngModel)]="folderName">
+    <div class="align-right">
+        <div class="icon-btn save-btn" (click)="save()">
+            <span class="material-symbols-outlined">save</span>
+            <p>Save</p>
+        </div>
+    </div>
+</div>

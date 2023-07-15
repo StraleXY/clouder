@@ -1,0 +1,63 @@
+.folder {
+    width: 200px;
+    height: 300px;
+    display: grid;
+    grid-template-rows: auto 70px;
+    transition: all 0.15s ease-in-out;
+    cursor: pointer;
+    z-index: 0;
+}
+.folder-details-short {
+    padding: 16px 6px;
+    padding-left: 16px;
+    display: grid;
+    grid-template-columns: auto 42px;
+}
+.folder-name {
+    background: transparent;
+    font-family: 'Titillium Web';
+    margin: 5px 0 0 6px;
+    color: #eee;
+    font-weight: medium;
+    font-size: 18px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.folder:hover {
+    background: #454545;
+}
+.folder:hover .folder-icon {
+    scale: 1.04;
+}
+
+.folder-thumbnail {
+    display: grid;
+    place-items: center;
+}
+.folder-icon {
+    width: 105px;
+    height: 75px;
+    display: inline-block;
+    margin: auto;
+    position: relative;
+    background-color: hsl(52, 58%, 61%);
+    border-radius: 0 5px 5px 5px;
+    /* box-shadow: 4px 4px 7px rgba(0, 0, 0, 0.02); */
+    transition: all 0.12s ease-in-out;
+    margin-bottom: -8px;
+    margin-top: 12px;
+    z-index: 0;
+}
+.folder-icon:before {
+    content: '';
+    width: 65%;
+    height: 8px;
+    border-radius: 5px 5px 0 0;
+    background-color: hwb(54 59% 22%);
+    position: absolute;
+    top: -8px;
+    left: 0px;
+    z-index: 0;
+}

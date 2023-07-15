@@ -1,0 +1,262 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    color: #fafafa;
+    background: #212121;
+    font-family: 'Titillium Web';
+    overflow: hidden;
+}
+.body {
+    background: #212121;
+}
+.center-in-container {
+    display: grid;
+    place-items: center;
+}
+h1 {
+    font-family: "Lexend";
+    font-size: 2.75rem;
+    margin: 0;
+}
+.text {
+    font-family: 'Roboto';
+    color: #080808;
+    font-weight: normal;
+}
+
+/* Containers */
+.card {
+    background: #353535;
+    box-shadow: 7px 7px 4pc rgba(0,0,0,0.3);
+    border-radius: 6px;
+    overflow: hidden;
+}
+.floating-card-header {
+    display: flex;
+    justify-content: end;
+    padding: 0 17px;
+}
+.flex-container {
+    display: flex;
+    align-items: center;
+}
+
+/* Input */
+label {
+    display: block;
+    margin-top: 30px;
+    font-size: 16px;
+    font-weight: 500;
+}
+input, textarea {
+    display: block;
+    height: 50px;
+    width: 100%;
+    color: #fafafa;
+    font-size: 0.9rem;
+    background-color: rgba(135, 135, 135, 0.27);
+    border-radius: 8px;
+    border: none;
+    outline: none;
+    padding: 0px 15px;
+    margin-top: 8px;
+    font-weight: 300;
+    font-family: 'Titillium Web';
+}
+input::placeholder, textarea::placeholder {
+    color: #e5e5e5;
+    opacity: 0.45;
+}
+textarea {
+    size-adjust: vertical;
+    height: unset;
+    padding: 14px 15px;
+    resize: vertical;
+    min-height: 50px;
+}
+
+/* Button */
+button {
+    width: 100%;
+    padding: 15px 0;
+    font-family: 'Roboto';
+    font-weight: normal;
+    letter-spacing: 0.15rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.05s ease-in-out;
+}
+button:hover {
+    filter: brightness(1.05);
+}
+button:active {
+    transform: scale(0.985);
+}
+.btn-filled {
+    background: #b5d542;
+    color: #080808;
+}
+.btn-text {
+    background: transparent;
+    color: #b5d542;
+}
+.btn-outlined {
+    background: transparent;
+    border: #b5d542 solid 2px;
+    color: #b5d542;
+}
+.btn-outlined:hover {
+    background-color: #d5f36515;
+}
+
+.btn-icon {
+    color: #000;
+    border-radius: 100%;
+    cursor: pointer;
+    width: 40px;
+    aspect-ratio: 1;
+    text-align: center;
+    padding-top: 8px;
+    user-select: none;
+    transition: background-color 0.08s ease-in-out;
+}
+.btn-icon:hover {
+    background-color: #ffffff24;
+}
+.btn-icon:active {
+    background-color: #ffffff52;
+}
+
+.icon-btn {
+    display: flex;
+    align-items: center;
+    background: #a1b300;
+    padding: 8px 10px;
+    padding-right: 14px;
+    border-radius: 8px;
+    color: #080808;
+    cursor: pointer;
+    transition: all 0.05s ease-in-out;
+}
+.icon-btn:hover {
+    background: #b5d542;
+}
+.icon-btn:active {
+    transform: scale(0.985);
+}
+.icon-btn p {
+    margin: 0;
+    margin-left: 10px;
+    margin-top: 1px;
+    letter-spacing: 0.15rem;
+    font-family: 'Roboto';
+    font-size: 14px;
+    font-weight: 500;
+    text-transform: uppercase;
+    user-select: none;
+}
+.icon-btn span {
+    scale: 0.9;
+}
+
+.icon-btn-text {
+    background: transparent;
+    color: #eee;
+}
+.icon-btn-outline {
+    background: transparent;
+    border: #464646 solid 2px;
+    color: #eee;
+}
+.icon-btn-outline:hover, .icon-btn-text:hover {
+    background: #464646;
+}
+.icon-btn-outline p {
+    font-weight: 400;
+}
+
+/* Menu */
+.menu-text {
+    /* font-family: 'Titillium Web'; */
+    margin: 0px;
+    margin-top: -8px;
+}
+.mat-menu-panel.material-menu {
+    background-color: red;
+}
+
+/* Scrollbar */
+.scrollable {
+    height: 100%;
+    overflow-y: auto;
+}
+::-webkit-scrollbar {
+    width: 0px;
+}
+::-webkit-scrollbar-track {
+    background: #5b6404; 
+}
+::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    background: #a1b300; 
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #C3D900; 
+}
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+/* Context Menu */
+.context-menu {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-radius: 6px;
+    position: absolute;
+    background-color: #eee;
+    border: none;
+    z-index: 10;
+    opacity: 0;
+    transform-origin: top;
+    scale:  0.9 0.8;
+    visibility: hidden;
+    transition: scale 0.07s ease-in;
+    overflow: hidden;
+    box-shadow: 7px 7px 2pc rgba(0,0,0,0.3);
+    user-select: none;
+}
+.context-menu.visible {
+    opacity: 1;
+    scale:  1 1;
+    visibility: visible;
+}
+.context-menu li {
+    padding: 16px 16px;
+    padding-right: 24px;
+    color: #151515;
+    cursor: pointer;
+    align-content: center;
+    transition: all 0.065s ease-in-out;
+}
+.context-menu li div {
+    display: flex;
+    align-items: center;
+}
+.context-menu li div p {
+    margin: 0;
+    margin-left: 10px;
+    margin-top: 1px;
+    font-size: 17px;
+}
+.context-menu li div span {
+    scale: 0.95;
+}
+.context-menu li:hover {
+    background-color: #353535;
+    color: #eee;
+}

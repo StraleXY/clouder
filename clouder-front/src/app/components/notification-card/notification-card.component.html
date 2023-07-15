@@ -1,0 +1,10 @@
+<div *ngIf="_visible" id="notificationCard" class="card">
+    <div class="circle-loader" [ngClass]="{'load-complete' : !_animated}">
+        <span
+            *ngIf="!_animated"
+            class="material-symbols-outlined" 
+            style="scale: 0.9; margin-top: 1px; margin-left: 1px;">
+        check</span>
+    </div>
+    <p class="loader-text" [ngClass]="{'animated-text' : _animated}">{{_text}}</p>
+</div>

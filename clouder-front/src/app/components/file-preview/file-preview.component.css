@@ -1,0 +1,101 @@
+.file {
+    width: 200px;
+    height: 300px;
+    display: grid;
+    grid-template-rows: auto 70px;
+    transition: all 0.15s ease-in-out;
+}
+.file-thumbnail {
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    position: relative;
+}
+.file-details-short {
+    background: #eee;
+    padding: 16px 0px;
+    padding-left: 16px;
+    display: grid;
+    grid-template-columns: auto 44px;
+}
+.file-name {
+    padding: 0;
+    margin: 0;
+    width: 140px;
+    margin-top: -5px;
+    font-family: 'Titillium Web';
+    font-weight: 600;
+    font-size: 18px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.file-date {
+    margin: 4px 0px;
+    font-size: 14px;
+    opacity: 0.65;
+}
+
+.file:hover {
+    background: #454545;
+}
+.file:hover .file-icon {
+    scale: 1.04;
+}
+.file:hover .file-icon::before {
+    border-color: #454545 #454545 rgba(255,255,255,.45) rgba(255,255,255,.45);
+}
+.file:hover .selected-label  {
+    border: 1px #eee solid;
+    background: transparent;
+    color: #eee;
+}
+
+/* File Thumbnail */
+.file-icon {
+    position: absolute;
+    width: 85px;
+    aspect-ratio: 0.75;
+    border-radius: 6px;
+    transition: all 0.12s ease-in-out;
+    font-family: 'Roboto';
+    text-transform: lowercase;
+    white-space: nowrap;
+    font-size: 20px;
+    padding-top: 84px;
+    padding-left: 10px;
+}
+.file-icon::before {
+    display: block;
+    content: "";
+    position: absolute;
+    top: -1px;
+    right: -1px;
+    width: 0;
+    height: 0;
+    border-bottom-left-radius: 6px;
+    border-width: 16px;
+    border-style: solid;
+    border-color: #353535 #353535 rgba(255,255,255,.45) rgba(255,255,255,.45);
+    transition: all 0.15s ease-in-out;
+}
+.selected-label {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    z-index: 1;
+    font-size: 14px;
+    font-family: 'Titillium Web';
+    color: #212121;
+    border: 1px #eee solid;
+    background-color: #eee;
+    padding: 0 10px;
+    padding-bottom: 2px;
+    border-radius: 4px;
+    height: 24px;
+    transition: all 0.15s ease-in-out;
+    opacity: 0;
+}
+.shown {
+    opacity: 1;
+}

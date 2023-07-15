@@ -1,0 +1,1 @@
+export let FOLDER_KEEPER = '#folder_keeper#'
