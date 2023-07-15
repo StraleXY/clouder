@@ -1,0 +1,638 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  clouder-back
+
+Globals:
+  Api:
+    Cors:
+      AllowMethods: "'*'"
+      AllowHeaders: "'*'"
+      AllowOrigin: "'*'"
+  Function:
+    Timeout: 10
+    MemorySize: 128
+
+Resources:
+
+  ClouderApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Dev
+      Auth:
+        DefaultAuthorizer: CognitoAuthorizer
+        AddDefaultAuthorizerToCorsPreflight: false
+        Authorizers:
+          CognitoAuthorizer:
+            UserPoolArn: !GetAtt 'UserPool.Arn'
+
+  ClouderWebsocketApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: ClouderWebsocketApi
+      ProtocolType: WEBSOCKET
+      RouteSelectionExpression: $request.body.action
+
+  ConnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ClouderWebsocketApi
+      RouteKey: $connect
+      AuthorizationType: NONE
+      OperationName: ConnectRoute
+      Target: !Sub integrations/${MyConnectIntegration}
+
+  DisconnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ClouderWebsocketApi
+      RouteKey: $disconnect
+      AuthorizationType: NONE
+      OperationName: DisconnectRoute
+      Target: !Sub integrations/${MyConnectIntegration}
+
+  DefaultRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ClouderWebsocketApi
+      RouteKey: $default
+      AuthorizationType: NONE
+      OperationName: DefaultRoute
+      Target: !Sub integrations/${MyConnectIntegration}
+
+  MyConnectIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref ClouderWebsocketApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub ConnectFunction
+      CredentialsArn: !GetAtt MyIntegrationRole.Arn
+
+  ConfigLambdaPermission:
+    Type: "AWS::Lambda::Permission"
+    DependsOn:
+    - ClouderWebsocketApi
+    - ConnectFunction
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref ConnectFunction
+      Principal: apigateway.amazonaws.com
+
+  MyIntegrationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: apigateway.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaInvocationPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !GetAtt ConnectFunction.Arn
+
+  ConnectFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/
+      Handler: websocket/websocket.connect_handler
+      Runtime: python3.9
+      Policies:
+        - !Ref LambdaManageConnectionsPolicy  # Reference the custom policy
+        - DynamoDBCrudPolicy:
+            TableName: websocket-connections
+
+  GetConnectionsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/
+      Handler: websocket/websocket.get_connected_clients
+      Runtime: python3.9
+      Policies:
+        - !Ref LambdaManageConnectionsPolicy  # Reference the custom policy
+        - DynamoDBCrudPolicy:
+            TableName: websocket-connections
+
+  WebsocketNotification:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/
+      Handler: websocket/websocket.send_notification_handler
+      Runtime: python3.9
+      Policies:
+        - !Ref LambdaManageConnectionsPolicy  # Reference the custom policy
+        - AWSLambdaBasicExecutionRole
+        - DynamoDBCrudPolicy:
+            TableName: websocket-connections
+        - !Ref LambdaApiGatewayPolicy
+
+  LambdaManageConnectionsPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: execute-api:ManageConnections
+            Resource: "*"
+
+
+  LambdaApiGatewayPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: execute-api:InvokeEndpoint
+            Resource: "*"
+
+  NotificationTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: Notifications
+      TopicName: NotificationTopic
+
+  FilesMetadataTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      TableName: files-metadata
+      PrimaryKey:
+        Name: id
+        Type: String
+
+  ConnectionTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      TableName: websocket-connections
+      PrimaryKey:
+        Name: id
+        Type: String
+
+  FilesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: clouder-files
+      AccessControl: PublicRead
+
+  MySampleStateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Definition:
+        StartAt: DeleteOrUpload
+        States:
+          DeleteOrUpload:
+            Type: Choice
+            Choices:
+            - Variable: "$.isDelete"
+              BooleanEquals: true
+              Next: DynamoDelete
+            Default: DynamoUpload
+
+          DynamoUpload:
+            Type: Task
+            Resource: DynamoUploader
+            Catch:
+              - ErrorEquals:
+                  - States.TaskFailed
+                Next: SendNotification
+            Next: S3Upload
+
+          DynamoDelete:
+            Type: Task
+            Resource: DynamoDeleter
+            Catch:
+              - ErrorEquals:
+                  - States.TaskFailed
+                Next: SendNotification
+            Next: S3Delete
+
+          S3Upload:
+            Type: Task
+            Resource: S3Uploader
+            Catch:
+              - ErrorEquals:
+                  - States.TaskFailed
+                ResultPath: "$.error"
+                Next: DynamoRevertUpload
+            Next: SendNotification
+
+          S3Delete:
+            Type: Task
+            Resource: S3Deleter
+            Catch:
+              - ErrorEquals:
+                  - States.TaskFailed
+                ResultPath: "$.error"
+                Next: DynamoRevertDelete
+            Next: SendNotification
+
+          DynamoRevertUpload:
+            Type: Task
+            Resource: DynamoUploadReverter
+            Next: SendNotification
+
+          DynamoRevertDelete:
+            Type: Task
+            Resource: DynamoDeleteReverter
+            Next: SendNotification
+
+          SendNotification:
+            Type: Task
+            Resource: SagaNotification
+            End: True
+
+      Policies:
+        - LambdaInvokePolicy:
+            FunctionName: !Ref DynamoUploader
+        - LambdaInvokePolicy:
+            FunctionName: !Ref DynamoDeleter
+        - LambdaInvokePolicy:
+            FunctionName: !Ref S3Uploader
+        - LambdaInvokePolicy:
+            FunctionName: !Ref S3Deleter
+        - LambdaInvokePolicy:
+            FunctionName: !Ref DynamoUploadReverter
+        - LambdaInvokePolicy:
+            FunctionName: !Ref DynamoDeleteReverter
+        - LambdaInvokePolicy:
+            FunctionName: !Ref SagaNotification
+        - LambdaInvokePolicy:
+            FunctionName: !Ref WebsocketNotification
+
+  DynamoUploader:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/
+      Handler: saga.dynamo_uploader
+      Runtime: python3.9
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: files-metadata
+
+  S3Uploader:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/
+      Handler: saga.s3_uploader
+      Runtime: python3.9
+      Policies:
+      - S3FullAccessPolicy:
+          BucketName: clouder-files
+
+  DynamoDeleter:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/
+      Handler: saga.dynamo_deleter
+      Runtime: python3.9
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: files-metadata
+
+  S3Deleter:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/
+      Handler: saga.s3_deleter
+      Runtime: python3.9
+      Policies:
+      - S3FullAccessPolicy:
+          BucketName: clouder-files
+
+  DynamoUploadReverter:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/
+      Handler: saga.dynamo_upload_reverter
+      Runtime: python3.9
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: files-metadata
+
+  DynamoDeleteReverter:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/
+      Handler: saga.dynamo_delete_reverter
+      Runtime: python3.9
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: files-metadata
+
+  SagaNotification:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/
+      Handler: saga.saga_notification
+      Runtime: python3.9
+      Policies:
+        - LambdaInvokePolicy:
+            FunctionName: !Ref WebsocketNotification
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - lambda:InvokeFunction
+              Resource: "*"
+
+  UploadFileFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/
+      Handler: upload/upload_file.upload_handler
+      Runtime: python3.9
+      Events:
+        FileUpload:
+          Type: Api
+          Properties:
+            Path: /file
+            Method: post
+            RestApiId: !Ref ClouderApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: files-metadata
+        - S3WritePolicy:
+            BucketName: clouder-files
+        - StepFunctionsExecutionPolicy:
+            StateMachineName: !GetAtt MySampleStateMachine.Name
+
+  DownloadFileFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/
+      Handler: download/download_files.download_handler
+      Runtime: python3.9
+      Events:
+        FileUpload:
+          Type: Api
+          Properties:
+            Path: /download
+            Method: get
+            RestApiId: !Ref ClouderApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: files-metadata
+        - S3ReadPolicy:
+            BucketName: clouder-files
+
+  GetFilesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/
+      Handler: get/get_files.get_files_handler
+      Runtime: python3.9
+      Events:
+        GetFiles:
+          Type: Api
+          Properties:
+            Path: /files
+            Method: get
+            RestApiId: !Ref ClouderApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: files-metadata
+
+  UpdateFileFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/
+      Handler: update/update_files.update_handler
+      Runtime: python3.9
+      Events:
+        UpdateFile:
+          Type: Api
+          Properties:
+            Path: /file
+            Method: put
+            RestApiId: !Ref ClouderApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: files-metadata
+        - DynamoDBReadPolicy:
+            TableName: files-metadata
+        - S3WritePolicy:
+            BucketName: clouder-files
+
+  MoveFilesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/
+      Handler: update/move_files.move_files_handler
+      Runtime: python3.9
+      Events:
+        MoveFiles:
+          Type: Api
+          Properties:
+            Path: /move
+            Method: put
+            RestApiId: !Ref ClouderApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: files-metadata
+
+  RenameFolderFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/
+      Handler: update/folder_rename.folder_rename_handler
+      Runtime: python3.9
+      Events:
+        UpdateFile:
+          Type: Api
+          Properties:
+            Path: /folder
+            Method: put
+            RestApiId: !Ref ClouderApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: files-metadata
+        - DynamoDBReadPolicy:
+            TableName: files-metadata
+
+  DeleteFilesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/
+      Handler: delete/delete_files.delete_content_handler
+      Runtime: python3.9
+      Events:
+        MoveFiles:
+          Type: Api
+          Properties:
+            Path: /delete
+            Method: post
+            RestApiId: !Ref ClouderApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: files-metadata
+        - S3FullAccessPolicy:
+            BucketName: clouder-files
+        - StepFunctionsExecutionPolicy:
+            StateMachineName: !GetAtt MySampleStateMachine.Name
+
+  ShareFilesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/
+      Handler: share/share_files.share_files_handler
+      Runtime: python3.9
+      Events:
+        MoveFiles:
+          Type: Api
+          Properties:
+            Path: /share
+            Method: post
+            RestApiId: !Ref ClouderApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: files-metadata
+        - DynamoDBReadPolicy:
+            TableName: files-metadata
+
+  GetSharedFilesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/
+      Handler: get/get_shared_files.get_shared_files_handler
+      Runtime: python3.9
+      Events:
+        MoveFiles:
+          Type: Api
+          Properties:
+            Path: /share
+            Method: get
+            RestApiId: !Ref ClouderApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: files-metadata
+
+  UnshareFilesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/
+      Handler: share/unshare_files.unshare_files_handler
+      Runtime: python3.9
+      Events:
+        MoveFiles:
+          Type: Api
+          Properties:
+            Path: /unshare
+            Method: post
+            RestApiId: !Ref ClouderApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: files-metadata
+        - DynamoDBWritePolicy:
+            TableName: files-metadata
+
+  PreSignUpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/
+      Handler: register/pre_register.pre_register_handler
+      Runtime: python3.9
+      Events:
+        PreSignUp:
+          Type: Cognito
+          Properties:
+            UserPool: !Ref UserPool
+            Trigger: PreSignUp
+      Policies:
+        - SESCrudPolicy:
+            IdentityName: name@example.com
+        - DynamoDBReadPolicy:
+            TableName: files-metadata
+        - DynamoDBWritePolicy:
+            TableName: files-metadata
+        - DynamoDBWritePolicy:
+            TableName: verification-tokens
+
+  VerifyFamilyMemberFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/
+      Handler: register/family_verification.family_verification_handler
+      Runtime: python3.9
+      Events:
+        MoveFiles:
+          Type: Api
+          Properties:
+            Path: /family/verify
+            Method: get
+            RestApiId: !Ref ClouderApi
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: files-metadata
+        - DynamoDBWritePolicy:
+            TableName: files-metadata
+        - DynamoDBCrudPolicy:
+            TableName: verification-tokens
+
+
+
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: ClouderSAMUserPool
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+      UsernameAttributes:
+        - email
+      Schema:
+        - Name: email
+          AttributeDataType: String
+          Required: true
+        - Name: birthdate
+          AttributeDataType: String
+          Required: true
+        - Name: name
+          AttributeDataType: String
+          Required: true
+        - Name: familyMemberEmail
+          AttributeDataType: String
+          Required: false
+      MfaConfiguration: "OFF"
+      AutoVerifiedAttributes:
+        - email
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId: !Ref UserPool
+      GenerateSecret: false
+
+  UserPoolUser:
+    Type: AWS::Cognito::UserPoolUser
+    Properties:
+      DesiredDeliveryMediums:
+        - EMAIL
+      Username: name@example.com
+      UserPoolId: !Ref UserPool

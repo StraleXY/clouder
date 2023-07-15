@@ -1,0 +1,4 @@
+requests
+boto3
+pybase64
+pyjwt
